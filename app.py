@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, session
 import os, json, time
 
-app = Flask(__name__, template_folder='Web')
+app = Flask(__name__, template_folder='')
 app.secret_key = "toniks-secret"
 
 ADMIN_PASSWORD = "toniks123"
@@ -104,4 +104,5 @@ def home():
     return render_template("Web.html", role=role, comments=comments, orders=orders, settings=settings)
 
 if __name__ == "__main__":
+
     app.run(port=9045)
