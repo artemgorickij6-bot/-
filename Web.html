@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>TONIKS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: sans-serif; background: #1f1c2c; color: #fff; padding: 2em; }
+    .container { max-width: 800px; margin: auto; background: rgba(255,255,255,0.1); padding: 1em; border-radius: 12px; }
+    input, textarea { width: 100%; padding: 0.5em; margin-top: 0.5em; border-radius: 6px; border: none; }
+    button { padding: 0.5em 1em; margin-top: 0.5em; background: #00c3ff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .entry { background: rgba(255,255,255,0.1); padding: 0.5em; margin-top: 0.5em; border-radius: 6px; }
+    small { display: block; margin-top: 0.3em; color: #ccc; }
+    h2 { border-bottom: 1px solid #444; padding-bottom: 0.3em; margin-top: 1.5em; }
+    .hidden { display: none; }
+  </style>
+  <script>
+    function checkAdmin() {
+      const nick = document.getElementById("nickname").value.trim().toLowerCase();
+      const passField = document.getElementById("adminPass");
+      if (nick === "admin") {
+        passField.classList.remove("hidden");
+      } else {
+        passField.classList.add("hidden");
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>TONIKS</h1>
+
+    {% if not role %}
+      <form method="POST">
+        <label>Это проверка на робота введите слово 'user': <input name="nickname" id="nickname" oninput="checkAdmin()" /></label>
+        <div id="adminPass" class="hidden">
+          <label>Пароль администратора: <input type="password" name="password" /></label>
+        </div>
+        <button type="submit">Войти</button>
+      </form>
+    {% else %}
+      <p>Вы вошли как <strong>{{ role }}</strong></p>
+
+      {% if role == "user" %}
+        <h2>💬 Комментарии</h2>
+        <form method="POST">
+          <input type="hidden" name="nickname" value="{{ role }}">
+          <textarea name="comment" placeholder="Напишите комментарий..."></textarea>
+          <button type="submit">Отправить</button>
+        </form>
+
+        <h2>📦 Заказ</h2>
+        <form method="POST">
+          <input type="hidden" name="nickname" value="{{ role }}">
+          <textarea name="order" placeholder="Что вы хотите заказать?"></textarea>
+          <input name="phone" placeholder="Ваш номер телефона" />
+          <small>📞 Только администратор видит ваш номер</small>
+          <button type="submit">Отправить заказ</button>
+        </form>
+
+        <h2>🔔 Уведомление администратору</h2>
+        <form method="POST">
+          <input type="hidden" name="nickname" value="{{ role }}">
+          <textarea name="setting" placeholder="Сообщение для администратора..."></textarea>
+          <button type="submit">Отправить уведомление</button>
+        </form>
+
+      {% elif role == "admin" %}
+        <h2>📥 Все заказы</h2>
+        {% for o in orders %}
+          <div class="entry">
+            <strong>{{ o.nick }}</strong>: {{ o.text }}<br>
+            <span>📞 {{ o.phone }}</span>
+            <form method="POST" style="margin-top: 0.5em;">
+              <input type="hidden" name="nickname" value="{{ role }}">
+              <button name="delete" value="{{ loop.index0 }}">❌ Удалить заказ</button>
+            </form>
+          </div>
+        {% endfor %}
+
+        <h2>🔔 Уведомления от пользователей</h2>
+        {% for s in settings %}
+          <div class="entry"><strong>{{ s.nick }}</strong>: {{ s.value }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <h2>💬 Все комментарии</h2>
+      {% for c in comments %}
+        <div class="entry">
+          <strong>{{ c.nick }}</strong>: {{ c.text }}
+          {% if role == "admin" %}
+            <form method="POST" style="margin-top: 0.3em;">
+              <input type="hidden" name="nickname" value="{{ role }}">
+              <button name="delete_comment" value="{{ loop.index0 }}">❌
+                <button name="delete_comment" value="{{ loop.index0 }}">❌ Удалить комментарий</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</body>
+</html>
