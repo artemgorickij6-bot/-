@@ -10,3 +10,4 @@ def toniks_bot(url):
             print(f"[BOT] Ошибка: {e}")
         time.sleep(20)
 toniks_bot(https://toniks.onrender.com)
+print('nice BOT Actived')
