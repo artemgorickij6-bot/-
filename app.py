@@ -25,6 +25,7 @@ def toniks_bot(url):
         except Exception as e:
             print(f"[BOT] Ошибка: {e}")
         time.sleep(20)
+        print('NICE')
 def ensure_base_exists():
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -119,6 +120,7 @@ if __name__ == "__main__":
 
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
 toniks_bot("https://toniks.onrender.com")
+
 
 
 
