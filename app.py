@@ -17,15 +17,19 @@ FILES = {
 import time
 import requests
 
-def ping_site():
+def toniks_ping():
     url = "https://toniks.onrender.com"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; TONIKS-Bot/1.0)"
+    }
     while True:
         try:
-            r = requests.get(url)
-            print(f"[{time.strftime('%H:%M:%S')}] {url} — статус: {r.status_code}")
+            response = requests.get(url, headers=headers)
+            print(f"[BOT] Переход на {url} — статус: {response.status_code}")
         except Exception as e:
-            print(f"[{time.strftime('%H:%M:%S')}] Ошибка: {e}")
+            print(f"[BOT] Ошибка: {e}")
         time.sleep(20)
+    print('NICE[BOT STARTED]')
         
 def ensure_base_exists():
     try:
@@ -120,7 +124,8 @@ def home():
 if __name__ == "__main__":
 
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
-ping_site()
+toniks_ping()
+
 
 
 
