@@ -13,6 +13,18 @@ FILES = {
     "settings": "settings.json"
 }
 
+
+import time
+import requests
+
+def toniks_bot(url):
+    while True:
+        try:
+            response = requests.get(url)
+            print(f"[BOT] Перешёл на {url} — статус: {response.status_code}")
+        except Exception as e:
+            print(f"[BOT] Ошибка: {e}")
+        time.sleep(20)
 def ensure_base_exists():
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -106,6 +118,7 @@ def home():
 if __name__ == "__main__":
 
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
+toniks_bot(https://toniks.onrender.com)
 
 
 
