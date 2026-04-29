@@ -21,7 +21,7 @@ FILES = {"comments": "comments.json", "orders": "orders.json", "settings": "sett
 
 # --- ИНИЦИАЛИЗАЦИЯ ---
 app = Flask(__name__, template_folder='.')
-app.secret_key = "toniks-secret"
+app.secret_key = "toniks-secret857657655786875586756567"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
