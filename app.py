@@ -46,7 +46,9 @@ def toniks_ping():
 
 # --- FLASK ROUTES ---
 @app.route("/")
+def home():
     return render_template("Web.html")
+
 
 # --- BOT HANDLERS ---
 @dp.message(Command("start"))
