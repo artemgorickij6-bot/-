@@ -45,9 +45,10 @@ def toniks_ping():
         time.sleep(600)
 
 # --- FLASK ROUTES ---
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("Web.html")
+    return render_template("Web.html", comments=load("comments"), orders=load("orders"), settings=load("settings"), role=request.args.get("role", ""))
+
 
 
 # --- BOT HANDLERS ---
