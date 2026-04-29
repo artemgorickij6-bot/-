@@ -46,8 +46,7 @@ def toniks_ping():
 
 # --- FLASK ROUTES ---
 @app.route("/")
-def home():
-    return "Сервер TONIKS запущен. Бот активен."
+    return render_template("Web.html")
 
 # --- BOT HANDLERS ---
 @dp.message(Command("start"))
