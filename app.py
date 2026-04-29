@@ -55,17 +55,14 @@ def home():
 async def start_handler(message: types.Message):
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(
-        text="🚀 Мои проекты", 
-        web_app=WebAppInfo(url="https://tg-ja7w.onrender.com")) 
+        text="🚀 Коменты", 
+        web_app=WebAppInfo(url="https://toniks.onrender.com")) 
     )
     builder.row(InlineKeyboardButton(
-        text="📝 Оставить жалобу", 
+        text="📝 Опишите бота которого мы создадим для вас и укажите цену которую хотели бы", 
         callback_data="write_complaint")
     )
-    builder.row(InlineKeyboardButton(
-        text="⭐ Поддержать звездами", 
-        callback_data="donate_stars")
-    )
+    
     await message.answer(
         f"Привет, {message.from_user.first_name}!\n\n"
         "Я помогу тебе связаться с разработчиком или посмотреть его проекты.",
@@ -77,22 +74,19 @@ async def ask_complaint(callback: types.CallbackQuery):
     await callback.message.answer("Пожалуйста, напиши текст жалобы или отзыва. Я сразу передам его владельцу.")
     await callback.answer()
 
-@dp.callback_query(F.data == "donate_stars")
-async def donate_stars(callback: types.CallbackQuery):
-    await callback.message.answer("Функция оплаты звездами будет доступна в следующем обновлении! 🌟")
-    await callback.answer()
+
 
 @dp.message(F.text, ~F.text.startswith('/'))
 async def forward_complaint(message: types.Message):
     try:
         await bot.send_message(
             ADMIN_ID, 
-            f"📩 **НОВАЯ ЖАЛОБА**\n\n"
+            f"📩 **НОВОЕ УВЕДОМЛЕНИЕ**\n\n"
             f"От: @{message.from_user.username or 'без_ника'}\n"
             f"ID: `{message.from_user.id}`\n"
             f"Текст: {message.text}"
         )
-        await message.answer("✅ Спасибо! Твое сообщение отправлено разработчику.")
+        await message.answer("✅ Спасибо! Твое сообщение отправлено разработчику.Мы свяжемся с вами.")
     except Exception as e:
         await message.answer("Ошибка при отправке.")
         print(f"Ошибка: {e}")
