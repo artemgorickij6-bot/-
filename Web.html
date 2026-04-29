@@ -49,15 +49,6 @@
           <button type="submit">Отправить</button>
         </form>
 
-        <h2>📦 Заказ бота</h2>
-        <form method="POST">
-          <input type="hidden" name="nickname" value="{{ role }}">
-          <textarea name="order" placeholder="Расскажите описание бота, и стоимость которую предложите."></textarea>
-          <input name="phone" placeholder="Ваш номер телефона или Юз в телеграме" />
-          <small>📞 Только администратор видит ваши данные</small>
-          <button type="submit">Отправить заказ</button>
-        </form>
-
         <h2>🔔 Уведомление администратору</h2>
         <form method="POST">
           <input type="hidden" name="nickname" value="{{ role }}">
@@ -65,7 +56,7 @@
           <button type="submit">Отправить уведомление</button>
         </form>
 
-      {% elif role == "admin" %}
+      {% elif role == "jhertjhertkjerhtyerjyth" %}
         <h2>📥 Все заказы</h2>
         {% for o in orders %}
           <div class="entry">
@@ -91,7 +82,6 @@
           {% if role == "admin" %}
             <form method="POST" style="margin-top: 0.3em;">
               <input type="hidden" name="nickname" value="{{ role }}">
-              <button name="delete_comment" value="{{ loop.index0 }}">❌
                 <button name="delete_comment" value="{{ loop.index0 }}">❌ Удалить комментарий</button>
             </form>
           {% endif %}
