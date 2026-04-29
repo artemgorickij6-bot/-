@@ -25,6 +25,7 @@ app.secret_key = "toniks-secret857657655786875586756567"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
+# --- ФУНКЦИИ РАБОТЫ С БАЗОЙ ---
 def ensure_base_exists():
     os.makedirs(DATA_DIR, exist_ok=True)
     for fname in FILES.values():
@@ -32,6 +33,22 @@ def ensure_base_exists():
         if not os.path.exists(path):
             with open(path, "w", encoding="utf-8") as f:
                 json.dump([], f)
+
+def load(name):
+    ensure_base_exists()
+    path = os.path.join(DATA_DIR, FILES[name])
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+
+def save(name, entry):
+    data = load(name)
+    data.append(entry)
+    path = os.path.join(DATA_DIR, FILES[name])
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 # --- САМОПИНГ ---
 def toniks_ping():
@@ -47,55 +64,46 @@ def toniks_ping():
 # --- FLASK ROUTES ---
 @app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("Web.html", comments=load("comments"), orders=load("orders"), settings=load("settings"), role=request.args.get("role", ""))
-
-
+    if request.method == "POST":
+        nick = request.form.get("nickname", "Аноним")
+        if "comment" in request.form:
+            save("comments", {"nick": nick, "text": request.form["comment"]})
+        return redirect(f"/?role={nick}")
+    
+    return render_template("Web.html", 
+                           comments=load("comments"), 
+                           orders=load("orders"), 
+                           settings=load("settings"), 
+                           role=request.args.get("role", ""))
 
 # --- BOT HANDLERS ---
 @dp.message(Command("start"))
 async def start_handler(message: types.Message):
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(
-        text="🚀 Коменты", 
-        web_app=WebAppInfo(url="https://toniks.onrender.com")) 
-    )
-    builder.row(InlineKeyboardButton(
-        text="📝 Опишите бота которого мы создадим для вас и укажите цену которую хотели бы", 
-        callback_data="write_complaint")
-    )
+    builder.row(InlineKeyboardButton(text="🚀 Коменты", web_app=WebAppInfo(url="https://toniks.onrender.com")))
+    builder.row(InlineKeyboardButton(text="📝 Заказать бота", callback_data="write_complaint"))
     
     await message.answer(
-        f"Привет, {message.from_user.first_name}!\n\n"
-        "Я помогу тебе связаться с разработчиком или посмотреть его проекты.",
+        f"Привет, {message.from_user.first_name}!\nЯ помогу тебе связаться с разработчиком.",
         reply_markup=builder.as_markup()
     )
 
 @dp.callback_query(F.data == "write_complaint")
 async def ask_complaint(callback: types.CallbackQuery):
-    await callback.message.answer("Пожалуйста, напиши текст жалобы или отзыва. Я сразу передам его владельцу.")
+    await callback.message.answer("Опишите бота, которого мы создадим для вас, и желаемую цену.")
     await callback.answer()
-
-
 
 @dp.message(F.text, ~F.text.startswith('/'))
 async def forward_complaint(message: types.Message):
     try:
-        await bot.send_message(
-            ADMIN_ID, 
-            f"📩 **НОВОЕ УВЕДОМЛЕНИЕ**\n\n"
-            f"От: @{message.from_user.username or 'без_ника'}\n"
-            f"ID: `{message.from_user.id}`\n"
-            f"Текст: {message.text}"
-        )
-        await message.answer("✅ Спасибо! Твое сообщение отправлено разработчику.Мы свяжемся с вами.")
+        await bot.send_message(ADMIN_ID, f"📩 **ЗАКАЗ**\nОт: @{message.from_user.username}\nТекст: {message.text}")
+        await message.answer("✅ Отправлено! Мы скоро свяжемся с вами.")
     except Exception as e:
-        await message.answer("Ошибка при отправке.")
-        print(f"Ошибка: {e}")
+        await message.answer("Ошибка отправки.")
 
 # --- ЗАПУСК ---
 def run_flask():
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
 
 async def main():
     logging.basicConfig(level=logging.INFO)
@@ -106,6 +114,7 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
 
