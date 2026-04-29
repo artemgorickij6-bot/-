@@ -14,113 +14,103 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # --- КОНФИГУРАЦИЯ ---
 TOKEN = "8505135235:AAEaGciF3qKt6hHTbwZrOPkRgQSOIwjjVvk"
 ADMIN_ID = 8670014042
-ADMIN_PASSWORD = "1f"
+ADMIN_PASSWORD = "toniks123"
 
-# Путь для Render (лучше использовать /tmp для временных данных или сохранять в корне)
 DATA_DIR = os.path.join(os.getcwd(), "TONIKS_BASE")
-FILES = {
-    "comments": "comments.json",
-    "orders": "orders.json",
-    "settings": "settings.json"
-}
+FILES = {"comments": "comments.json", "orders": "orders.json", "settings": "settings.json"}
 
-# --- ИНИЦИАЛИЗАЦИЯ FLASK ---
-app = Flask(__name__, template_folder='')
+# --- ИНИЦИАЛИЗАЦИЯ ---
+app = Flask(__name__, template_folder='.')
 app.secret_key = "toniks-secret"
-
-# --- ИНИЦИАЛИЗАЦИЯ БОТА ---
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# --- ФУНКЦИИ БАЗЫ ДАННЫХ ---
 def ensure_base_exists():
     os.makedirs(DATA_DIR, exist_ok=True)
     for fname in FILES.values():
         path = os.path.join(DATA_DIR, fname)
         if not os.path.exists(path):
             with open(path, "w", encoding="utf-8") as f:
-                json.dump([], f, ensure_ascii=False, indent=2)
+                json.dump([], f)
 
-def load(name):
-    ensure_base_exists()
-    path = os.path.join(DATA_DIR, FILES[name])
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def save(name, entry):
-    data = load(name)
-    data.append(entry)
-    path = os.path.join(DATA_DIR, FILES[name])
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-# --- ЛОГИКА САМОПИНГА ---
+# --- САМОПИНГ ---
 def toniks_ping():
-    # Ждем 30 секунд, чтобы сервер успел подняться
     time.sleep(30)
     url = "https://toniks.onrender.com"
     while True:
         try:
-            res = requests.get(url)
-            print(f"[PING] Статус: {res.status_code}")
-        except Exception as e:
-            print(f"[PING] Ошибка: {e}")
-        time.sleep(600) # Пинг раз в 10 минут
+            requests.get(url, timeout=10)
+        except:
+            pass
+        time.sleep(600)
 
-# --- РОУТЫ FLASK ---
-@app.route("/", methods=["GET", "POST"])
+# --- FLASK ROUTES ---
+@app.route("/")
 def home():
-    role = request.args.get("role", "").strip().lower()
-    comments = load("comments")
-    orders = load("orders")
-    
-    if request.method == "POST":
-        role = request.form.get("nickname", "").strip().lower()
-        # Тут твоя логика обработки форм (сокращено для краткости)
-        if "comment" in request.form:
-            save("comments", {"nick": role, "text": request.form["comment"]})
-        return redirect(f"/?role={role}")
-    
-    return render_template("Web.html", role=role, comments=comments, orders=orders)
+    return "Сервер TONIKS запущен. Бот активен."
 
-# --- ЛОГИКА БОТА ---
+# --- BOT HANDLERS ---
 @dp.message(Command("start"))
 async def start_handler(message: types.Message):
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text="🚀 Сайт", web_app=WebAppInfo(url="https://toniks.onrender.com")))
-    await message.answer(f"Привет, {message.from_user.first_name}!", reply_markup=builder.as_markup())
+    builder.row(InlineKeyboardButton(
+        text="🚀 Мои проекты", 
+        web_app=WebAppInfo(url="https://tg-ja7w.onrender.com")) 
+    )
+    builder.row(InlineKeyboardButton(
+        text="📝 Оставить жалобу", 
+        callback_data="write_complaint")
+    )
+    builder.row(InlineKeyboardButton(
+        text="⭐ Поддержать звездами", 
+        callback_data="donate_stars")
+    )
+    await message.answer(
+        f"Привет, {message.from_user.first_name}!\n\n"
+        "Я помогу тебе связаться с разработчиком или посмотреть его проекты.",
+        reply_markup=builder.as_markup()
+    )
 
-@dp.message()
+@dp.callback_query(F.data == "write_complaint")
+async def ask_complaint(callback: types.CallbackQuery):
+    await callback.message.answer("Пожалуйста, напиши текст жалобы или отзыва. Я сразу передам его владельцу.")
+    await callback.answer()
+
+@dp.callback_query(F.data == "donate_stars")
+async def donate_stars(callback: types.CallbackQuery):
+    await callback.message.answer("Функция оплаты звездами будет доступна в следующем обновлении! 🌟")
+    await callback.answer()
+
+@dp.message(F.text, ~F.text.startswith('/'))
 async def forward_complaint(message: types.Message):
-    if message.text:
-        await bot.send_message(ADMIN_ID, f"📩 Новый текст: {message.text}")
-        await message.answer("✅ Отправлено!")
+    try:
+        await bot.send_message(
+            ADMIN_ID, 
+            f"📩 **НОВАЯ ЖАЛОБА**\n\n"
+            f"От: @{message.from_user.username or 'без_ника'}\n"
+            f"ID: `{message.from_user.id}`\n"
+            f"Текст: {message.text}"
+        )
+        await message.answer("✅ Спасибо! Твое сообщение отправлено разработчику.")
+    except Exception as e:
+        await message.answer("Ошибка при отправке.")
+        print(f"Ошибка: {e}")
 
-# --- ЗАПУСК ВСЕГО ---
+# --- ЗАПУСК ---
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
 
-async def run_bot():
+async def main():
     logging.basicConfig(level=logging.INFO)
+    ensure_base_exists()
+    threading.Thread(target=run_flask, daemon=True).start()
+    threading.Thread(target=toniks_ping, daemon=True).start()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    ensure_base_exists()
-    
-    # 1. Запускаем Flask в отдельном потоке
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
+    asyncio.run(main())
 
-    # 2. Запускаем пинг в отдельном потоке
-    ping_thread = threading.Thread(target=toniks_ping, daemon=True)
-    ping_thread.start()
-
-    # 3. Основной поток отдаем под бота (asyncio)
-    try:
-        asyncio.run(run_bot())
-    except KeyboardInterrupt:
-        print("Выключение...")
 
 
 
